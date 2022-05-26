@@ -1,0 +1,118 @@
+# Copyright (c) 2022 Blacknon. All rights reserved.
+# Use of this source code is governed by an MIT license
+# that can be found in the LICENSE file.
+
+name: Release Job.
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  APP_NAME: 'nimtb'
+  NIM_VERSION: '1.6.4'
+  MAINTAINER: 'blacknon'
+
+jobs:
+  # get version
+  package_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.package_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Get version
+        id: package_version
+        shell: bash
+        run: |
+          VERSION="$(cat nimtb.nimble | grep '^version' | sed -r 's/^version += "(.+)"/\1/')"
+          echo "::set-output name=version::$VERSION"
+
+  # build rust binary
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            ext: tar.gz
+          - os: ubuntu-latest
+            ext: rpm
+          - os: ubuntu-latest
+            ext: deb
+          - os: macos-latest
+            ext: tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: ${{ env.NIM_VERSION }}
+
+      - name: nimble build
+        run: |
+          nimble build -Y -d:release
+
+      - name: Create package file
+        if: ${{ (matrix.ext == 'tar.gz') || (matrix.ext == 'rpm') || (matrix.ext == 'deb') }}
+        run: |
+          _TAR=tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.tar.gz
+          mkdir -p package/bin
+          mv /bin/tb package/bin
+          mkdir -p package/man
+          cp man/tb.1 package/man
+          cp -r completion package/
+          ## sed -i is not used due to difference between macOS and Linux
+          perl -i -pe s/___VERSION___/${{ needs.package_version.outputs.version }}/ ./package/.tar2package.yml
+          tar czvf "$_TAR" -C "$PWD/package" completion bin man .tar2package.yml
+
+      # use: https://github.com/greymd/tar2package
+      - name: Build rpm
+        id: rpm
+        if: matrix.ext == 'rpm'
+        run: |
+          _TAR=tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.tar.gz
+          docker run -i "greymd/tar2rpm:1.0.1" < "$_TAR" > tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.rpm
+          echo ::set-output name=sha256::$( sha256sum tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.rpm | awk '{print $1}' )
+
+      # use: https://github.com/greymd/tar2package
+      - name: Build deb
+        id: deb
+        if: matrix.ext == 'deb'
+        run: |
+          _TAR=tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.tar.gz
+          docker run -i "greymd/tar2deb:1.0.1" < "$_TAR" > tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.deb
+          echo ::set-output name=sha256::$( sha256sum tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.deb | awk '{print $1}' )
+
+      - name: README for rpm
+        if: matrix.ext == 'rpm'
+        run: |
+          _TAR=tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.rpm
+
+      - name: Upload artifact
+        if: matrix.ext == 'rpm'
+        uses: actions/upload-artifact@v1
+        with:
+          name: build-${{ matrix.target }}
+          path: tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.rpm
+
+      - name: README for deb
+        if: matrix.ext == 'deb'
+        run: |
+          _TAR=tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.deb
+
+      - name: Upload artifact
+        if: matrix.ext == 'deb'
+        uses: actions/upload-artifact@v1
+        with:
+          name: build-${{ matrix.target }}
+          path: tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.deb
+
+      - name: Upload artifact
+        if: matrix.ext == 'tar.gz'
+        uses: actions/upload-artifact@v1
+        with:
+          name: build-${{ matrix.target }}
+          path: tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.tar.gz
