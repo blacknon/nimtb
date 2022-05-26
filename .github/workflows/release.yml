@@ -158,7 +158,9 @@ jobs:
           - os: macos-latest
             ext: tar.gz
           # - x86_64-pc-windows-gnu
-    needs: [create-release]
+    needs:
+      - package_version
+      - create-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v1
