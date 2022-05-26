@@ -96,7 +96,7 @@ jobs:
         if: matrix.ext == 'rpm'
         uses: actions/upload-artifact@v1
         with:
-          name: build-${{ matrix.target }}
+          name: build-${{ matrix.os }}.${{ matrix.ext }}
           path: tb-${{ needs.package_version.outputs.version }}.rpm
 
       - name: README for deb
@@ -108,14 +108,14 @@ jobs:
         if: matrix.ext == 'deb'
         uses: actions/upload-artifact@v1
         with:
-          name: build-${{ matrix.target }}
+          name: build-${{ matrix.os }}.${{ matrix.ext }}
           path: tb-${{ needs.package_version.outputs.version }}.deb
 
       - name: Upload artifact
         if: matrix.ext == 'tar.gz'
         uses: actions/upload-artifact@v1
         with:
-          name: build-${{ matrix.target }}
+          name: build-${{ matrix.os }}.${{ matrix.ext }}
           path: tb-${{ needs.package_version.outputs.version }}.tar.gz
 
   # create package release
@@ -171,7 +171,7 @@ jobs:
 
       - uses: actions/download-artifact@v1
         with:
-          name: build-${{ matrix.os }}
+          name: build-${{ matrix.os }}.${{ matrix.ext }}
 
       - uses: actions/upload-release-asset@v1
         env:
