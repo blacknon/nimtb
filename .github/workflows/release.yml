@@ -60,7 +60,7 @@ jobs:
         run: |
           _TAR=tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.tar.gz
           mkdir -p package/bin
-          mv /bin/tb package/bin
+          mv bin/tb package/bin
           mkdir -p package/man
           cp man/tb.1 package/man
           cp -r completion package/
