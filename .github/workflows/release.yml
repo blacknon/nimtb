@@ -180,6 +180,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.upload-url.outputs.url }}
-          asset_path: ./build-${{ matrix.os }}/hwatch-${{ needs.create-release.outputs.version }}.${{ matrix.os }}.${{ matrix.ext }}
-          asset_name: hwatch-${{ needs.create-release.outputs.version }}.${{ matrix.os }}.${{ matrix.ext }}
+          asset_path: ./build-${{ matrix.os }}/tb-${{ needs.package_version.outputs.version }}.${{ matrix.os }}.${{ matrix.ext }}
+          asset_name:  tb-${{ needs.package_version.outputs.version }}.${{ matrix.os }}.${{ matrix.ext }}
           asset_content_type: application/octet-stream
