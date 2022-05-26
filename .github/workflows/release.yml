@@ -117,3 +117,67 @@ jobs:
         with:
           name: build-${{ matrix.target }}
           path: tb-${{ needs.package_version.outputs.version }}.tar.gz
+
+  # create package release
+  create-release:
+    needs:
+      - package_version
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.package_version.outputs.version }}
+          release_name: Version ${{ needs.package_version.outputs.version }}
+          draft: true
+          prerelease: false
+
+      - run: |
+          echo '${{ steps.create-release.outputs.upload_url }}' > release_upload_url.txt
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: create-release
+          path: release_upload_url.txt
+
+  upload-release:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            ext: tar.gz
+          - os: ubuntu-latest
+            ext: rpm
+          - os: ubuntu-latest
+            ext: deb
+          - os: macos-latest
+            ext: tar.gz
+          # - x86_64-pc-windows-gnu
+    needs: [create-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v1
+        with:
+          name: create-release
+
+      - id: upload-url
+        run: |
+          echo "::set-output name=url::$(cat create-release/release_upload_url.txt)"
+
+      - uses: actions/download-artifact@v1
+        with:
+          name: build-${{ matrix.os }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.upload-url.outputs.url }}
+          asset_path: ./build-${{ matrix.os }}/hwatch-${{ needs.create-release.outputs.version }}.${{ matrix.os }}.${{ matrix.ext }}
+          asset_name: hwatch-${{ needs.create-release.outputs.version }}.${{ matrix.os }}.${{ matrix.ext }}
+          asset_content_type: application/octet-stream
