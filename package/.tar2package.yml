@@ -1,0 +1,10 @@
+name : nimtb
+cmdname : tb
+summary : columnate list transforme to human readble table format.
+description : columnate list transforme to human readble table format.
+version : ___VERSION___
+changelog : See https://github.com/blacknon/nimtb/releases
+url : https://github.com/blacknon/nimtb
+author : blacknon
+email : blacknon@orebibou.com
+libdir : null
