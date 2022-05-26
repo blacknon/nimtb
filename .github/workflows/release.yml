@@ -173,7 +173,7 @@ jobs:
 
       - uses: actions/download-artifact@v1
         with:
-          name: build-${{ matrix.os }}.${{ matrix.ext }}
+          name: build-${{ matrix.os }}
 
       - uses: actions/upload-release-asset@v1
         env:
