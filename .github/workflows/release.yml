@@ -60,7 +60,7 @@ jobs:
       - name: Create package file
         if: ${{ (matrix.ext == 'tar.gz') || (matrix.ext == 'rpm') || (matrix.ext == 'deb') }}
         run: |
-          _TAR=tb-${{ needs.package_version.outputs.version }}.${{ matrix.target }}.tar.gz
+          _TAR=tb-${{ needs.package_version.outputs.version }}.tar.gz
           mkdir -p package/bin
           mv bin/tb package/bin
           mkdir -p package/man
