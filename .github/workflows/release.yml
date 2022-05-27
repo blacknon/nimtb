@@ -150,12 +150,16 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
+            type: linux
             ext: tar.gz
           - os: ubuntu-latest
+            type: linux
             ext: rpm
           - os: ubuntu-latest
+            type: linux
             ext: deb
           - os: macos-latest
+            type: macos
             ext: tar.gz
           # - x86_64-pc-windows-gnu
     needs:
@@ -181,5 +185,5 @@ jobs:
         with:
           upload_url: ${{ steps.upload-url.outputs.url }}
           asset_path: ./build-${{ matrix.os }}/tb-${{ needs.package_version.outputs.version }}.${{ matrix.ext }}
-          asset_name:  tb-${{ needs.package_version.outputs.version }}.${{ matrix.ext }}
+          asset_name:  tb-${{ matrix.type }}-${{ needs.package_version.outputs.version }}.${{ matrix.ext }}
           asset_content_type: application/octet-stream
