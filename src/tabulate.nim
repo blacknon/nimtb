@@ -9,10 +9,10 @@ from eastasianwidth import stringWidth
 
 type TableType = object
     # ヘッダーの1行目のバーを表示するかどうか
-    isOutputFisrtHeaderBar: bool
+    isOutputHeaderTopBar: bool
 
     # ヘッダーと内容を区切るバーを表示するかどうか
-    isOutputSecondHeaderBar: bool
+    isOutputHeaderBottomBar: bool
 
     # 表の最後にバーを表示するかどうか
     isOutputBottomBar: bool
@@ -34,8 +34,8 @@ type TableType = object
 
 const
     PlainTable = TableType(
-        isOutputFisrtHeaderBar: false,
-        isOutputSecondHeaderBar: false,
+        isOutputHeaderTopBar: false,
+        isOutputHeaderBottomBar: false,
         isOutputBottomBar: false,
         isOutputBothSideVerticalBar: false,
         verticalBarChar: "",
@@ -45,8 +45,8 @@ const
     )
 
     MarkdownTable = TableType(
-        isOutputFisrtHeaderBar: false,
-        isOutputSecondHeaderBar: true,
+        isOutputHeaderTopBar: false,
+        isOutputHeaderBottomBar: true,
         isOutputBottomBar: false,
         isOutputBothSideVerticalBar: true,
         verticalBarChar: "|",
@@ -55,6 +55,7 @@ const
         pointChar: "|"
     )
 
+#
 proc calcColumnWidth(rows: openArray[seq[string]], verticalBarChar: string, padding: int = 1): seq[int] =
     # Calculation the size of each column from cell width.
     result = repeat(0, rows[0].len)
@@ -76,6 +77,7 @@ proc calcColumnWidth(rows: openArray[seq[string]], verticalBarChar: string, padd
             if cellWidth > result[i]:
                 result[i] = cellWidth
 
+#
 proc setTableType(tableType: string): TableType =
     case tableType
     of "markdown":
@@ -83,21 +85,33 @@ proc setTableType(tableType: string): TableType =
     of "plain":
         return PlainTable
 
-proc outputTable*(
-        rows: openArray[seq[string]],
-        tableType: string = "markdown",
-        isHeader: bool = false,
-        leftAlign: seq[int] = @[],
-        rightAlign: seq[int] = @[],
-        centerAlign: seq[int] = @[],
-        padding: int = 1
-        ) : string =
-    # set table type.
-    let tableTypeInfo = setTableType(tableType)
+# This function creates header top HorizontalBar
+proc createHeaderTopHorizontalBar(
+    tableTypeInfo: TableType,
+    columnWidth: seq[int],
+    ): string=
+    var horizontalBar: seq[string] = @[tableTypeInfo.pointChar]
+    for i in 0..<columnWidth.len:
+        # set column bar.
+        var columnBar = repeat(tableTypeInfo.horizontalBarChar, columnWidth[i]).join("")
 
-    # TODO: tableのフォーマット方式いかんで縦棒の有効・向こうを指定する
-    let columnWidth: seq[int] = calcColumnWidth(rows, verticalBarChar=tableTypeInfo.verticalBarChar, padding=padding)
+        # add columnBar to horizontalBar
+        horizontalBar.add(columnBar)
 
+        # add pointChar
+        horizontalBar.add(tableTypeInfo.pointChar)
+    result = horizontalBar.join("")
+
+    return result
+
+# This function creates header bottom HorizontalBar.
+proc createHeaderBottomHorizontalBar(
+    tableTypeInfo: TableType,
+    columnWidth: seq[int],
+    leftAlign: seq[int] = @[],
+    rightAlign: seq[int] = @[],
+    centerAlign: seq[int] = @[]
+    ): string=
     var horizontalBar: seq[string] = @[tableTypeInfo.pointChar]
     for i in 0..<columnWidth.len:
         # Get column number for use with align.
@@ -123,20 +137,78 @@ proc outputTable*(
 
         # add pointChar
         horizontalBar.add(tableTypeInfo.pointChar)
+    result = horizontalBar.join("")
 
-    let horizontalBarText = horizontalBar.join("")
+    return result
+
+# This function creates bottom HorizontalBar.
+proc createBottomHorizontalBar(
+    tableTypeInfo: TableType,
+    columnWidth: seq[int],
+    ): string=
+    var horizontalBar: seq[string] = @[tableTypeInfo.pointChar]
+    for i in 0..<columnWidth.len:
+        # set column bar.
+        var columnBar = repeat(tableTypeInfo.horizontalBarChar, columnWidth[i]).join("")
+
+        # add columnBar to horizontalBar
+        horizontalBar.add(columnBar)
+
+        # add pointChar
+        horizontalBar.add(tableTypeInfo.pointChar)
+    result = horizontalBar.join("")
+
+    return result
+
+#
+proc outputTable*(
+        rows: openArray[seq[string]],
+        tableType: string = "markdown",
+        isHeader: bool = false,
+        leftAlign: seq[int] = @[],
+        rightAlign: seq[int] = @[],
+        centerAlign: seq[int] = @[],
+        padding: int = 1
+        ) : string =
+    # set table type.
+    let tableTypeInfo = setTableType(tableType)
+
+    # TODO: tableのフォーマット方式いかんで縦棒の有効・無効を指定する
+    let columnWidth: seq[int] = calcColumnWidth(rows, verticalBarChar=tableTypeInfo.verticalBarChar, padding=padding)
+
+    # create headerTopHorizontalBar
+    var horizontalHeaderTopBarText = createHeaderTopHorizontalBar(
+        tableTypeInfo,
+        columnWidth
+        )
+
+    # create headerBottomHorizontalBar
+    var horizontalHeaderBottomBarText = createHeaderBottomHorizontalBar(
+        tableTypeInfo,
+        columnWidth,
+        leftAlign=leftAlign,
+        rightAlign=rightAlign,
+        centerAlign=centerAlign,
+        )
+
+    # create bottomHorizontalBar
+    var horizontalBottomBarText = createBottomHorizontalBar(
+        tableTypeInfo,
+        columnWidth
+    )
 
     # create template table
     var tmpTable: seq[string]
 
     # print FisrtHeaderBar
-    if isHeader and tableTypeInfo.isOutputFisrtHeaderBar:
-        tmpTable.add( horizontalBarText )
+    if isHeader and tableTypeInfo.isOutputHeaderTopBar:
+        tmpTable.add(horizontalHeaderTopBarText)
 
     # １行ずつ出力する
     var rowNum = 0
     for cols in rows:
         var newCols: seq[string] = @[""]
+
         for i in 0..<columnWidth.len:
             # Get column number for use with align.
             let columnNum = i + 1
@@ -163,20 +235,20 @@ proc outputTable*(
                 cellText = alignLeft(cellTextData, cellWidth - (padding * 2))
 
             # write cell
-            newCols.add (fmt"{paddingText}{cellText}{paddingText}")
+            newCols.add(fmt"{paddingText}{cellText}{paddingText}")
 
         newCols.add("")
         tmpTable.add(newCols.join(tableTypeInfo.verticalBarChar))
 
-        # if SecondHeaderBar
-        if rowNum == 0 and isHeader and tableTypeInfo.isOutputSecondHeaderBar:
-            tmpTable.add( horizontalBarText )
+        # if isOutputHeaderBottomBar
+        if rowNum == 0 and isHeader and tableTypeInfo.isOutputHeaderBottomBar:
+            tmpTable.add(horizontalHeaderBottomBarText)
 
         rowNum += 1
 
     # print BottomBar
     if tableTypeInfo.isOutputBottomBar:
-        tmpTable.add( horizontalBarText )
+        tmpTable.add(horizontalBottomBarText)
 
     # create result
     result = tmpTable.join("\n")

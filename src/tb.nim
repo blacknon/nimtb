@@ -21,7 +21,7 @@ var p = newParser:
     # flags
     flag("-t", "--table" , help="display markdown table mode.")
     flag("-l", "--header" , help="set header at 1st line.")
-    # flag("-n", "--number", help = "show row number.")
+    flag("-n", "--number", help = "show row number.")
 
     # options
     # option("-T", "--table-format", choices=[], help="Define the table output format")
@@ -82,14 +82,24 @@ var p = newParser:
         var table: seq[seq[string]] = @[]
 
         var columnCount: int
+        var lineCount = 1
+        var i = 0
         for line in lines:
             var row: seq[string]
 
+            # add number column
+            if opts.number:
+                if opts.header and i == 0:
+                    row.add("No.")
+                else:
+                    row.add(fmt("{lineCount}"))
+                    lineCount += 1
+
             # split data
             if opts.separator == " ":
-                row = line.splitWhitespace(-1)
+                row.add(line.splitWhitespace(-1))
             else:
-                row = line.split(opts.separator)
+                row.add(line.split(opts.separator))
 
             # add row
             table.add(row)
@@ -97,28 +107,36 @@ var p = newParser:
             if len(row) > columnCount:
                 columnCount = len(row)
 
+            # add count
+            i += 1
+
         # check align options
         # left
-        let leftAlignCheckData = getNumberFromRange(opts.left_align, columnCount)
+        let leftAlignCheckData = getNumberFromRange(opts.left_align, columnCount, opts.number)
         if not leftAlignCheckData.status:
             stderr.writeLine "left-align error."
             stderr.writeLine leftAlignCheckData.message
             quit(1)
 
         # right
-        let rightAlignCheckData = getNumberFromRange(opts.right_align, columnCount)
+        var rightAlignCheckData = getNumberFromRange(opts.right_align, columnCount, opts.number)
         if not rightAlignCheckData.status:
             stderr.writeLine "right-align error."
             stderr.writeLine rightAlignCheckData.message
             quit(1)
 
         # center
-        let centerAlignCheckData = getNumberFromRange(opts.center_align, columnCount)
+        let centerAlignCheckData = getNumberFromRange(opts.center_align, columnCount, opts.number)
         if not centerAlignCheckData.status:
             stderr.writeLine "center-align error."
             stderr.writeLine centerAlignCheckData.message
             quit(1)
 
+        # if print number, set this column right align.
+        if opts.number:
+            rightAlignCheckData.data.add(1)
+
+        # print markdown table.
         echo outputTable(
             table,
             tableType=tableType,

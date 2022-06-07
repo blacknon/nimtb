@@ -17,7 +17,8 @@ type numRange* = object
 proc isNumberRange(text: string): bool =
     result = text.match(re"^[0-9,-]+$")
 
-proc getNumberFromRange*(text: string, maxNum: int): numRange =
+#
+proc getNumberFromRange*(text: string, maxNum: int, isViewNumber: bool = false): numRange =
     # if blank, return result.status is true
     if len(text) == 0:
         result.status = true
@@ -68,5 +69,12 @@ proc getNumberFromRange*(text: string, maxNum: int): numRange =
             let numnumElementNum = parseInt(numElement)
 
             result.data.add(numnumElementNum)
+
+    if isViewNumber and len(result.data) > 0:
+        var tmpData: seq[int] = @[]
+        for d in result.data:
+            tmpData.add(d + 1)
+
+        result.data = tmpData
 
     result.status = true
