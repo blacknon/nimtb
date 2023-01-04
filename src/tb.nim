@@ -8,6 +8,9 @@ import argparse
 import terminal
 import strformat
 import sequtils
+import std/parseopt
+import hashes
+import sets
 
 # local package
 import tabulate
@@ -149,9 +152,33 @@ var p = newParser:
 # main
 proc main() =
   # parse commandline
+  var op = initOptParser()
+
+  var cmdline: OrderedSet[string] = initOrderedSet[string]()
+  while true:
+    op.next()
+    case op.kind
+    of cmdEnd: break
+    of cmdShortOption:
+      if op.val == "":
+        cmdline.incl("-" & op.key)
+      else:
+        cmdline.incl("-" & op.key)
+        cmdline.incl(op.val)
+    of cmdLongOption:
+      if op.val == "":
+        cmdline.incl("--" & op.key)
+      else:
+        cmdline.incl("--" & op.key)
+        cmdline.incl(op.val)
+    of cmdArgument:
+      cmdline.incl(op.key)
+
+  # echo toSeq(cmdline)
+
   try:
     # run program
-    p.run()
+    p.run(toSeq(cmdline))
 
   except ShortCircuit as e:
     if e.flag == "argparse_help":
