@@ -1,20 +1,22 @@
-# Copyright(c) 2022 Blacknon. All rights reserved.
+# Copyright(c) 2023 Blacknon. All rights reserved.
 # Use of this source code is governed by an MIT license
 # that can be found in the LICENSE file.
 
+import argparse
+import hashes
 import nre
 import os
-import argparse
-import terminal
-import strformat
 import sequtils
-import std/parseopt
-import hashes
 import sets
+import strformat
+import terminal
+
+import std/parseopt
 
 # local package
-import tabulate
-import common
+import ./tabulate
+import ./common
+import ./myshlex
 
 # command line parse
 var p = newParser:
@@ -100,9 +102,16 @@ var p = newParser:
 
             # split data
             if opts.separator == " ":
-                row.add(line.splitWhitespace(-1))
+                var line_seq = line.splitWhitespace(-1)
+                row.add(line_seq)
+
             else:
-                row.add(line.split(opts.separator))
+                # var line_seq = line.split(opts.separator)
+                var dlm_chars = cast[seq[char]](opts.separator)
+
+                # var line_seq = shlex_split(line, @[',']).words
+                var line_seq = shlex_split(line, dlm_chars).words
+                row.add(line_seq)
 
             # add row
             table.add(row)
