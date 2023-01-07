@@ -27,6 +27,7 @@ var p = newParser:
     flag("-t", "--table" , help="display markdown table mode.")
     flag("-l", "--header" , help="set header at 1st line.")
     flag("-n", "--number", help = "show row number.")
+    flag("-q", "--quote", help = "Treat elements enclosed in double quotation marks as one column.")
 
     # options
     # option("-T", "--table-format", choices=[], help="Define the table output format")
@@ -104,12 +105,15 @@ var p = newParser:
             # TODO: ダブルクォーテーションを考慮した処理を行うフラグを追加(コマンドラインのオプションとして)
             # TODO: ダブルクォーテーションを考慮した処理を行うフラグに応じてshelx_splitを使わせる(分岐追加)
             var line_seq: seq[string] = @[]
-            if opts.separator == " ":
+            if opts.quote:
+                var dlm_chars = cast[seq[char]](opts.separator)
+                line_seq = shlex_split(line, dlm_chars).words
+
+            elif opts.separator == " " and not opts.quote:
                 line_seq = line.splitWhitespace(-1)
 
             else:
-                var dlm_chars = cast[seq[char]](opts.separator)
-                line_seq = shlex_split(line, dlm_chars).words
+                line_seq = line.split(opts.separator)
             row.add(line_seq)
 
             # add row
