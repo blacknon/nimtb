@@ -101,17 +101,16 @@ var p = newParser:
                     lineCount += 1
 
             # split data
+            # TODO: ダブルクォーテーションを考慮した処理を行うフラグを追加(コマンドラインのオプションとして)
+            # TODO: ダブルクォーテーションを考慮した処理を行うフラグに応じてshelx_splitを使わせる(分岐追加)
+            var line_seq: seq[string] = @[]
             if opts.separator == " ":
-                var line_seq = line.splitWhitespace(-1)
-                row.add(line_seq)
+                line_seq = line.splitWhitespace(-1)
 
             else:
-                # var line_seq = line.split(opts.separator)
                 var dlm_chars = cast[seq[char]](opts.separator)
-
-                # var line_seq = shlex_split(line, @[',']).words
-                var line_seq = shlex_split(line, dlm_chars).words
-                row.add(line_seq)
+                line_seq = shlex_split(line, dlm_chars).words
+            row.add(line_seq)
 
             # add row
             table.add(row)
