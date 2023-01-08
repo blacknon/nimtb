@@ -14,8 +14,9 @@ import terminal
 import std/parseopt
 
 # local package
-import ./tabulate
 import ./common
+import ./config
+import ./tabulate
 import ./myshlex
 
 # command line parse
@@ -24,6 +25,7 @@ var p = newParser:
     help("{prog}: columnate list transforme to human readble table format.")
 
     # flags
+    flag("-v", "--version" , help="display version.", shortcircuit=true)
     flag("-t", "--table" , help="display markdown table mode.")
     flag("-l", "--header" , help="set header at 1st line.")
     flag("-n", "--number", help = "show row number.")
@@ -195,7 +197,11 @@ proc main() =
   except ShortCircuit as e:
     if e.flag == "argparse_help":
         echo p.help
-        quit(1)
+        quit(0)
+
+    if e.flag == "version":
+        echo pkgVersion
+        quit(0)
   except UsageError:
     stderr.writeLine getCurrentExceptionMsg()
     quit(1)

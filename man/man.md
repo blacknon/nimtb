@@ -21,7 +21,12 @@ Flags
 
 -h, --help
 
-:   Prints help information
+:   prints help information.
+
+
+-v, --version
+
+:   Prints version.
 
 
 -t, --table

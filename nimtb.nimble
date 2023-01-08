@@ -1,6 +1,13 @@
+import
+  os
+
+template thisModuleFile: string = instantiationInfo(fullPaths = true).filename
+
+import src/config
+
 # Package
 
-version       = "0.3.0"
+version       = pkgVersion
 author        = "blacknon"
 description   = "columnate list transforme to human readble table format."
 license       = "MIT"
