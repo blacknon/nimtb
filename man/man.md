@@ -1,4 +1,4 @@
-% tb(1) Version 0.1.0 |
+% tb(1) Version 0.3.0 |
 
 NAME
 ====
@@ -34,6 +34,16 @@ Flags
 :   set header at 1st line.
 
 
+-n, --number
+
+:   show row number.
+
+
+-q, --quote
+
+:   treat elements enclosed in double quotation marks as one column.
+
+
 Options
 -------
 
@@ -52,6 +62,7 @@ Options
 -C, --center-align=CENTER_ALIGN
 
 :   Aligns the specified column to the center. ex) -C 3-5,9,12
+
 
 BUGS
 ====

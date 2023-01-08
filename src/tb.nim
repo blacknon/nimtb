@@ -27,7 +27,7 @@ var p = newParser:
     flag("-t", "--table" , help="display markdown table mode.")
     flag("-l", "--header" , help="set header at 1st line.")
     flag("-n", "--number", help = "show row number.")
-    flag("-q", "--quote", help = "Treat elements enclosed in double quotation marks as one column.")
+    flag("-q", "--quote", help = "treat elements enclosed in double quotation marks as one column.")
 
     # options
     # option("-T", "--table-format", choices=[], help="Define the table output format")
