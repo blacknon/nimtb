@@ -1,17 +1,23 @@
-# Copyright(c) 2022 Blacknon. All rights reserved.
+# Copyright(c) 2023 Blacknon. All rights reserved.
 # Use of this source code is governed by an MIT license
 # that can be found in the LICENSE file.
 
+import argparse
+import hashes
 import nre
 import os
-import argparse
-import terminal
-import strformat
 import sequtils
+import sets
+import strformat
+import terminal
+
+import std/parseopt
 
 # local package
-import tabulate
-import common
+import ./common
+import ./config
+import ./tabulate
+import ./myshlex
 
 # command line parse
 var p = newParser:
@@ -19,9 +25,11 @@ var p = newParser:
     help("{prog}: columnate list transforme to human readble table format.")
 
     # flags
+    flag("-v", "--version" , help="display version.", shortcircuit=true)
     flag("-t", "--table" , help="display markdown table mode.")
     flag("-l", "--header" , help="set header at 1st line.")
     flag("-n", "--number", help = "show row number.")
+    flag("-q", "--quote", help = "treat elements enclosed in double quotation marks as one column.")
 
     # options
     # option("-T", "--table-format", choices=[], help="Define the table output format")
@@ -96,10 +104,19 @@ var p = newParser:
                     lineCount += 1
 
             # split data
-            if opts.separator == " ":
-                row.add(line.splitWhitespace(-1))
+            # TODO: ダブルクォーテーションを考慮した処理を行うフラグを追加(コマンドラインのオプションとして)
+            # TODO: ダブルクォーテーションを考慮した処理を行うフラグに応じてshelx_splitを使わせる(分岐追加)
+            var line_seq: seq[string] = @[]
+            if opts.quote:
+                var dlm_chars = cast[seq[char]](opts.separator)
+                line_seq = shlex_split(line, dlm_chars).words
+
+            elif opts.separator == " " and not opts.quote:
+                line_seq = line.splitWhitespace(-1)
+
             else:
-                row.add(line.split(opts.separator))
+                line_seq = line.split(opts.separator)
+            row.add(line_seq)
 
             # add row
             table.add(row)
@@ -149,14 +166,42 @@ var p = newParser:
 # main
 proc main() =
   # parse commandline
+  var op = initOptParser()
+
+  var cmdline: OrderedSet[string] = initOrderedSet[string]()
+  while true:
+    op.next()
+    case op.kind
+    of cmdEnd: break
+    of cmdShortOption:
+      if op.val == "":
+        cmdline.incl("-" & op.key)
+      else:
+        cmdline.incl("-" & op.key)
+        cmdline.incl(op.val)
+    of cmdLongOption:
+      if op.val == "":
+        cmdline.incl("--" & op.key)
+      else:
+        cmdline.incl("--" & op.key)
+        cmdline.incl(op.val)
+    of cmdArgument:
+      cmdline.incl(op.key)
+
+  # echo toSeq(cmdline)
+
   try:
     # run program
-    p.run()
+    p.run(toSeq(cmdline))
 
   except ShortCircuit as e:
     if e.flag == "argparse_help":
         echo p.help
-        quit(1)
+        quit(0)
+
+    if e.flag == "version":
+        echo pkgVersion
+        quit(0)
   except UsageError:
     stderr.writeLine getCurrentExceptionMsg()
     quit(1)

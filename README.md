@@ -28,6 +28,8 @@ Options:
   -h, --help
   -t, --table                display markdown table mode.
   -l, --header               set header at 1st line.
+  -n, --number               show row number.
+  -q, --quote                Treat elements enclosed in double quotation marks as one column.
   -s, --separator=SEPARATOR  Specify a set of characters to be used to delimited columns. (default:  )
   -L, --left-align=LEFT_ALIGN
                              Aligns the specified column to the left. ex) -L 1-3,7,10
@@ -50,7 +52,7 @@ $ seq 1 10 991 | xargs -n10 | tb
  901  911  921  931  941  951  961  971  981  991
 
 $ # show markdown table
-$ seq 1 10 991 | xargs -n10 | tb -l -t
+$ seq 1 10 991 | xargs -n10 | tb -lt
 | 1    | 11   | 21   | 31   | 41   | 51   | 61   | 71   | 81   | 91   |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 101  | 111  | 121  | 131  | 141  | 151  | 161  | 171  | 181  | 191  |
@@ -64,7 +66,7 @@ $ seq 1 10 991 | xargs -n10 | tb -l -t
 | 901  | 911  | 921  | 931  | 941  | 951  | 961  | 971  | 981  | 991  |
 
 $ # right align
-$ seq 1 10 991 | xargs -n10 | tb -l -t -R 3-5
+$ seq 1 10 991 | xargs -n10 | tb -lt -R 3-5
 | 1    | 11   |   21 |   31 |   41 | 51   | 61   | 71   | 81   | 91   |
 | :--- | :--- | ---: | ---: | ---: | :--- | :--- | :--- | :--- | :--- |
 | 101  | 111  |  121 |  131 |  141 | 151  | 161  | 171  | 181  | 191  |
