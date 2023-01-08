@@ -27,7 +27,7 @@ jobs:
         id: package_version
         shell: bash
         run: |
-          VERSION="$(cat nimtb.nimble | grep '^version' | sed -r 's/^version += "(.+)"/\1/')"
+          VERSION="$(cat src/config.nim | grep 'pkgVersion*' | sed -r 's/ +pkgVersion\* += "(.+)"/\1/')"
           echo "::set-output name=version::$VERSION"
 
   # build rust binary
