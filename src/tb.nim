@@ -38,6 +38,8 @@ var p = newParser:
     option("-R", "--right-align", help="Aligns the specified column to the right. ex) -R 2-4,8,11")
     option("-C", "--center-align", help="Aligns the specified column to the center. ex) -C 3-5,9,12")
     # option("-o", "--output", help = "Output to this file")
+    # option("-w") # カラムサイズ(-wより優先？)
+    # option("-W") # 表全体のサイズ
 
     # args
     arg("file", nargs = -1, help = "Read from this files...")

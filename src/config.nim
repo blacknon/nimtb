@@ -1,2 +1,2 @@
 const
-    pkgVersion* = "0.3.0"
+    pkgVersion* = "0.4.0"
